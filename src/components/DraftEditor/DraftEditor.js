@@ -22,7 +22,7 @@ export default class DraftEditor extends Component {
     super();
 
     this.state = {
-      inlineToolbar: { show: false },
+      inlineToolbar: { show: false, position: {} },
       editorState: EditorState.createEmpty()
     };
 
@@ -92,10 +92,10 @@ export default class DraftEditor extends Component {
       <div id="editor-container" className="c-editor-container js-editor-container">
         {inlineToolbar.show
           ? <InlineToolbar
-          editorState={editorState}
-          onToggle={this.toggleInlineStyle}
-          position={inlineToolbar.position}
-        />
+              editorState={editorState}
+              onToggle={this.toggleInlineStyle}
+              position={inlineToolbar.position}
+            />
           : null
         }
         <div className="section-name">
