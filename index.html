@@ -1,14 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Draft.js примеры</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" href="/favicon.ico">
+  <title>Draft.js примеры</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <style>
+    body {
+      background-color: #f5ab98;
+      font-size: 14px;
+      font-family: Lucida Console,Monaco,monospace;
+    }
+
+    .about {
+      margin-bottom: 30px;
+    }
+
+    .list-container {
+      text-align: center;
+      padding-top: 200px;
+    }
+
+    .list {
+      margin: 0 auto;
+      text-align: left;
+      display: inline-block;
+    }
+  </style>
 </head>
 <body>
-    <a rel="stylesheet" href="link-entity">Глупый компонент</a>
-    <a rel="stylesheet" href="inline-stylization">Инлайн стилизация</a>
-    <a rel="stylesheet" href="link-entity">Добавление ссылок</a>
+<div class="list-container">
+  <div class="about">
+    Demo-страницы для статьи на хабре ...
+  </div>
+  <ul class="list">
+    <li>
+      <a rel="stylesheet" href="link-entity">Глупый компонент</a>
+    </li>
+    <li>
+      <a rel="stylesheet" href="inline-stylization">Инлайн стилизация</a>
+    </li>
+    <li>
+      <a rel="stylesheet" href="link-entity">Добавление ссылок</a>
+    </li>
+    <li>
+      <a rel="stylesheet" href="custom-component">Кастомный компонент - слайдер</a>
+    </li>
+    <li>
+      <a rel="stylesheet" href="markup-export">Экспорт состояния редактора в html-разметку</a>
+    </li>
+  </ul>
+</div>
 </body>
 </html>
