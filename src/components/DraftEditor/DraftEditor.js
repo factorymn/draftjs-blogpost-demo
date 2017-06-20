@@ -28,7 +28,10 @@ export default class DraftEditor extends Component {
     } = this.state;
 
     return (
-      <div id="editor-container" className="c-editor-container js-editor-container">
+      <div
+        id="editor-container"
+        className="c-editor-container js-editor-container"
+      >
         <div className="editor">
           <Editor
             editorState={editorState}
