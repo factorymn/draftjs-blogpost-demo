@@ -25,8 +25,8 @@ export default class DraftEditor extends Component {
     const decorator = new CompositeDecorator([
       {
         strategy: findLinkEntities,
-        component: Link,
-      },
+        component: Link
+      }
     ]);
 
     this.state = {
@@ -77,7 +77,7 @@ export default class DraftEditor extends Component {
 
     const contentStateWithEntity = contentState.createEntity(
       'LINK',
-      'MUTABLE',
+      'SEGMENTED',
       { url: urlValue }
     );
 
@@ -173,7 +173,8 @@ function findLinkEntities(contentBlock, callback, contentState) {
 }
 
 const Link = (props) => {
-  const { url } = props.contentState.getEntity(props.entityKey).getData();
+  const { url } = props.contentState
+    .getEntity(props.entityKey).getData();
 
   return (
     <a href={url} title={url} className="ed-link">
