@@ -1,22 +1,32 @@
 import './DraftEditor.styl';
 
 import React, { Component } from 'react';
+import isSoftNewlineEvent from 'draft-js/lib/isSoftNewlineEvent';
+import { Map } from 'immutable';
 
 import {
+  CompositeDecorator,
   Editor,
   EditorState,
   RichUtils,
-  CompositeDecorator
+  DefaultDraftBlockRenderMap
 } from 'draft-js';
 
 import {
+  addNewBlockAt,
+  getCurrentBlock,
   getSelectionRange,
   getSelectionCoords
 } from 'utils';
 
 import {
-  InlineToolbar
+  InlineToolbar,
+  EditorSlider
 } from 'components';
+
+const urlCreator = window.URL || window.webkitURL;
+
+import _map from 'lodash/map';
 
 export default class DraftEditor extends Component {
   constructor() {
@@ -25,8 +35,8 @@ export default class DraftEditor extends Component {
     const decorator = new CompositeDecorator([
       {
         strategy: findLinkEntities,
-        component: Link
-      }
+        component: Link,
+      },
     ]);
 
     this.state = {
@@ -38,8 +48,15 @@ export default class DraftEditor extends Component {
     this.handleKeyCommand = ::this.handleKeyCommand;
     this.onChange = ::this.onChange;
     this.setLink = ::this.setLink;
+    this.handleDroppedFiles = ::this.handleDroppedFiles;
+    this.handleReturn = ::this.handleReturn;
 
     this.focus = () => this.refs.editor.focus();
+        this.getEditorState = () => this.state.editorState;
+        this.blockRendererFn = customBlockRenderer(
+          this.onChange,
+          this.getEditorState
+        );
   }
 
   onChange(editorState) {
@@ -77,7 +94,7 @@ export default class DraftEditor extends Component {
 
     const contentStateWithEntity = contentState.createEntity(
       'LINK',
-      'SEGMENTED',
+      'MUTABLE',
       { url: urlValue }
     );
 
@@ -104,6 +121,27 @@ export default class DraftEditor extends Component {
     );
   }
 
+  handleDroppedFiles(selection, files) {
+    const filteredFiles = files
+      .filter(file => (file.type.indexOf('image/') === 0));
+
+    if (!filteredFiles.length) {
+      return 'not_handled';
+    }
+
+    this.onChange(addNewBlockAt(
+      this.state.editorState,
+      selection.getAnchorKey(),
+      'SLIDER',
+      new Map({ slides: _map(
+        filteredFiles,
+        file => ({ url: urlCreator.createObjectURL(file) })
+      )})
+    ));
+
+    return 'handled';
+  }
+
   handleKeyCommand(command) {
     const { editorState } = this.state;
     const newState = RichUtils.handleKeyCommand(editorState, command);
@@ -114,6 +152,26 @@ export default class DraftEditor extends Component {
     }
 
     return false;
+  }
+
+  handleReturn(e) {
+    const { editorState } = this.state;
+
+    if (isSoftNewlineEvent(e)) {
+      this.onChange(RichUtils.insertSoftNewline(editorState));
+      return 'handled';
+    }
+
+    if (!e.altKey && !e.metaKey && !e.ctrlKey) {
+      const currentBlock = getCurrentBlock(editorState);
+      const blockType = currentBlock.getType();
+
+      if (blockType === 'SLIDER') {
+        this.onChange(addNewBlockAt(editorState, currentBlock.getKey()));
+        return 'handled';
+      }
+    }
+    return 'not_handled';
   }
 
   render() {
@@ -134,7 +192,7 @@ export default class DraftEditor extends Component {
           : null
         }
         <div className="section-name">
-          Теперь можно обернуть выделенный фрагмент текста в ссылку:
+          Перетащите в область редактора несколько изображений:
         </div>
         <div
           className="editor"
@@ -145,6 +203,10 @@ export default class DraftEditor extends Component {
             onChange={this.onChange}
             handleKeyCommand={this.handleKeyCommand}
             customStyleMap={customStyleMap}
+            handleDroppedFiles={this.handleDroppedFiles}
+            handleReturn={this.handleReturn}
+            blockRenderMap={RenderMap}
+            blockRendererFn={this.blockRendererFn}
             ref="editor"
           />
         </div>
@@ -173,8 +235,7 @@ function findLinkEntities(contentBlock, callback, contentState) {
 }
 
 const Link = (props) => {
-  const { url } = props.contentState
-    .getEntity(props.entityKey).getData();
+  const { url } = props.contentState.getEntity(props.entityKey).getData();
 
   return (
     <a href={url} title={url} className="ed-link">
@@ -182,3 +243,26 @@ const Link = (props) => {
     </a>
   );
 };
+
+const customBlockRenderer = (setEditorState, getEditorState) => (contentBlock) => {
+  const type = contentBlock.getType();
+
+  switch (type) {
+    case 'SLIDER':
+      return {
+        component: EditorSlider,
+        props: {
+          getEditorState,
+          setEditorState,
+        }
+    };
+
+    default: return null;
+  }
+};
+
+const RenderMap = new Map({
+  SLIDER: {
+    element: 'div',
+  }
+}).merge(DefaultDraftBlockRenderMap);
