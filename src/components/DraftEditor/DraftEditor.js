@@ -1,6 +1,7 @@
 import './DraftEditor.styl';
 
 import React, { Component } from 'react';
+import { render } from 'react-dom';
 import isSoftNewlineEvent from 'draft-js/lib/isSoftNewlineEvent';
 import { Map } from 'immutable';
 
@@ -9,7 +10,8 @@ import {
   Editor,
   EditorState,
   RichUtils,
-  DefaultDraftBlockRenderMap
+  DefaultDraftBlockRenderMap,
+  convertToRaw
 } from 'draft-js';
 
 import {
@@ -21,12 +23,16 @@ import {
 
 import {
   InlineToolbar,
-  EditorSlider
+  EditorSlider,
+  ContentSlider
 } from 'components';
 
 const urlCreator = window.URL || window.webkitURL;
 
 import _map from 'lodash/map';
+import _forEach from 'lodash/forEach';
+
+import converter from './converter';
 
 export default class DraftEditor extends Component {
   constructor() {
@@ -50,13 +56,18 @@ export default class DraftEditor extends Component {
     this.setLink = ::this.setLink;
     this.handleDroppedFiles = ::this.handleDroppedFiles;
     this.handleReturn = ::this.handleReturn;
+    this.logMarkup = ::this.logMarkup;
 
     this.focus = () => this.refs.editor.focus();
-        this.getEditorState = () => this.state.editorState;
-        this.blockRendererFn = customBlockRenderer(
-          this.onChange,
-          this.getEditorState
-        );
+    this.getEditorState = () => this.state.editorState;
+    this.blockRendererFn = customBlockRenderer(this.onChange, this.getEditorState);
+
+    this.logState = () => {
+      console.log(
+        'editor state ==> ',
+        convertToRaw(this.state.editorState.getCurrentContent())
+      );
+    }
   }
 
   onChange(editorState) {
@@ -94,7 +105,7 @@ export default class DraftEditor extends Component {
 
     const contentStateWithEntity = contentState.createEntity(
       'LINK',
-      'MUTABLE',
+      'IMMUTABLE',
       { url: urlValue }
     );
 
@@ -122,8 +133,8 @@ export default class DraftEditor extends Component {
   }
 
   handleDroppedFiles(selection, files) {
-    const filteredFiles = files
-      .filter(file => (file.type.indexOf('image/') === 0));
+    console.log('files ==>', files)
+    const filteredFiles = files.filter(file => (file.type.indexOf('image/') === 0));
 
     if (!filteredFiles.length) {
       return 'not_handled';
@@ -133,13 +144,32 @@ export default class DraftEditor extends Component {
       this.state.editorState,
       selection.getAnchorKey(),
       'SLIDER',
-      new Map({ slides: _map(
-        filteredFiles,
-        file => ({ url: urlCreator.createObjectURL(file) })
-      )})
+      new Map({ slides: _map(files, file => ({ url: urlCreator.createObjectURL(file) })) })
     ));
 
     return 'handled';
+  }
+
+  logMarkup() {
+    const markup = converter(this.state.editorState.getCurrentContent());
+
+    document.getElementById('js-markup-container').innerHTML = markup;
+    console.log('markup ==> ', markup);
+
+    const sliders = document.querySelectorAll('.js-slider');
+
+    _forEach(sliders, slider => {
+      const description = slider.innerHTML;
+
+      slider.innerHTML = ''; // eslint-disable-line
+
+      render((
+        <ContentSlider
+          slides={JSON.parse(slider.getAttribute('data-slides').replace(/'/g, '"'))}
+          descriptionHtml={description}
+        />
+      ), slider);
+    });
   }
 
   handleKeyCommand(command) {
@@ -192,7 +222,7 @@ export default class DraftEditor extends Component {
           : null
         }
         <div className="section-name">
-          Перетащите в область редактора несколько изображений:
+          Откройте консоль и кликните "Log state" и "Export & log markup":
         </div>
         <div
           className="editor"
@@ -209,6 +239,24 @@ export default class DraftEditor extends Component {
             blockRendererFn={this.blockRendererFn}
             ref="editor"
           />
+        </div>
+        <input
+          onClick={this.logState}
+          className="button"
+          type="button"
+          value="Log state"
+        />
+        <input
+          onClick={this.logMarkup}
+          className="button"
+          type="button"
+          value="Export & log markup"
+        />
+        <div className="result-wrapper">
+          <div className="section-name">
+            Результат:
+          </div>
+          <div className="markup-container" id="js-markup-container"></div>
         </div>
       </div>
     );
@@ -238,7 +286,7 @@ const Link = (props) => {
   const { url } = props.contentState.getEntity(props.entityKey).getData();
 
   return (
-    <a href={url} title={url} className="ed-link">
+    <a href={url} title={url} className="link">
       {props.children}
     </a>
   );
@@ -248,13 +296,12 @@ const customBlockRenderer = (setEditorState, getEditorState) => (contentBlock) =
   const type = contentBlock.getType();
 
   switch (type) {
-    case 'SLIDER':
-      return {
-        component: EditorSlider,
-        props: {
-          getEditorState,
-          setEditorState,
-        }
+    case 'SLIDER': return {
+      component: EditorSlider,
+      props: {
+        getEditorState,
+        setEditorState,
+      }
     };
 
     default: return null;
