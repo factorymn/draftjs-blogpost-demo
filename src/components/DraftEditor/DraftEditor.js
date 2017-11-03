@@ -190,9 +190,7 @@ export default class DraftEditor extends Component {
     if (isSoftNewlineEvent(e)) {
       this.onChange(RichUtils.insertSoftNewline(editorState));
       return 'handled';
-    }
-
-    if (!e.altKey && !e.metaKey && !e.ctrlKey) {
+    } else if (!e.altKey && !e.metaKey && !e.ctrlKey) {
       const currentBlock = getCurrentBlock(editorState);
       const blockType = currentBlock.getType();
 
@@ -201,7 +199,6 @@ export default class DraftEditor extends Component {
         return 'handled';
       }
     }
-    return 'not_handled';
   }
 
   render() {
@@ -214,11 +211,11 @@ export default class DraftEditor extends Component {
       <div id="editor-container" className="c-editor-container js-editor-container">
         {inlineToolbar.show
           ? <InlineToolbar
-          editorState={editorState}
-          onToggle={this.toggleInlineStyle}
-          position={inlineToolbar.position}
-          setLink={this.setLink}
-        />
+            editorState={editorState}
+            onToggle={this.toggleInlineStyle}
+            position={inlineToolbar.position}
+            setLink={this.setLink}
+          />
           : null
         }
         <div className="section-name">

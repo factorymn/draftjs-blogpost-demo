@@ -1,7 +1,7 @@
 import React from 'react';
 import { convertToHTML } from 'draft-convert';
 
-export const styleToHTML = (style) => {
+const styleToHTML = (style) => {
   switch (style) {
     case 'ITALIC':
       return <em className="italic" />;
@@ -14,9 +14,8 @@ export const styleToHTML = (style) => {
   }
 };
 
-export const blockToHTML = (block) => {
+const blockToHTML = (block) => {
   const blockType = block.type;
-
   switch (blockType) {
     case 'SLIDER': {
       const slides = block.data.slides;
@@ -31,7 +30,7 @@ export const blockToHTML = (block) => {
   }
 };
 
-export const entityToHTML = (entity, text) => {
+const entityToHTML = (entity, text) => {
   if (entity.type === 'LINK') {
     return (
       <a
