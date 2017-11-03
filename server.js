@@ -1,24 +1,31 @@
+/* eslint-disable */
+var express = require('express');
 var webpack = require('webpack');
-var WebpackDevServer = require('webpack-dev-server');
-var config = require('./webpack/webpack.dev.config');
 
-var localPort = config.localPort;
-var localIp = config.localIp;
+var webpackConfig = require('./webpack/webpack.dev.config.js');
 
-delete config.localIp;
-delete config.localPort;
+var localIp = webpackConfig.localIp;
+var localPort = webpackConfig.localPort;
 
-new WebpackDevServer(webpack(config), {
-  publicPath: config.output.publicPath,
-  headers: {
-    'Access-Control-Allow-Origin': '*',
-  },
-  hot: true,
-  historyApiFallback: true
-}).listen(localPort, localIp, function (err) {
-  if (err) {
-    console.log(err);
-  }
-  console.log(`Listening at ${ localIp }:${ localPort }`);
+delete webpackConfig.localIp;
+delete webpackConfig.localPort;
+
+const compiler = webpack(webpackConfig);
+
+let app = express();
+
+app.use(require('webpack-dev-middleware')(compiler, {
+  noInfo: true,
+  publicPath: webpackConfig.output.publicPath,
+  hot: true
+}));
+
+app.use(require('webpack-hot-middleware')(compiler));
+
+app.use((req, res) => {
+  res.status(200).sendFile(__dirname + '/index.html')
 });
 
+app.listen(localPort, () => {
+  console.info(`==> Open up http://${ localIp }:${ localPort }/ in your browser.`)
+});

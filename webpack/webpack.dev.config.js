@@ -12,9 +12,9 @@ module.exports = {
   devtool: 'cheap-inline-module-source-map',
   entry: {
     'main': [
-      'webpack-dev-server/client?http://' + localIp + ':' + port,
-      'webpack/hot/dev-server',
-      './src/app.js'
+      'react-hot-loader/patch',
+      'webpack-hot-middleware/client?reload=true',
+      './src/app.js',
     ]
   },
   output: {
@@ -58,49 +58,6 @@ module.exports = {
           }
         ]
       },
-      {
-        test: /\.woff$/,
-        loader: 'url-loader',
-        options: {
-          limit: 10000,
-          name: '[path][name].[ext]',
-          mimetype: 'application/font-woff'
-        }
-      },
-      {
-        test: /\.woff2$/,
-        loader: 'url-loader',
-        options: {
-          limit: 10000,
-          name: '[path][name].[ext]',
-          mimetype: 'application/font-woff'
-        }
-      },
-      {
-        test: /\.ttf$/,
-        loader: 'url-loader',
-        options: {
-          limit: 10000,
-          name: '[path][name].[ext]',
-          mimetype: 'application/octet-stream'
-        }
-      },
-      {
-        test: /\.eot$/,
-        loader: 'file-loader',
-        options: {
-          name: '[path][name].[ext]'
-        }
-      },
-      {
-        test: /\.svg$/,
-        loader: 'url-loader',
-        options: {
-          limit: 10000,
-          name: '[path][name].[ext]',
-          mimetype: 'image/svg+xml'
-        }
-      }
     ]
   },
   resolve: {
