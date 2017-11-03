@@ -41,7 +41,7 @@ export const addNewBlockAt = (
   editorState,
   pivotBlockKey,
   newBlockType = 'unstyled',
-  initialData = {}
+  initialData = new Map({})
 ) => {
   const content = editorState.getCurrentContent();
   const blockMap = content.getBlockMap();
