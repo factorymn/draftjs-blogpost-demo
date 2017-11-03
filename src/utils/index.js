@@ -4,7 +4,7 @@ import {
   genKey
 } from 'draft-js';
 
-import { List } from 'immutable';
+import { List, Map } from 'immutable';
 
 export const getSelectionRange = () => {
   const selection = window.getSelection();
@@ -41,7 +41,7 @@ export const addNewBlockAt = (
   editorState,
   pivotBlockKey,
   newBlockType = 'unstyled',
-  initialData = {}
+  initialData = new Map({})
 ) => {
   const content = editorState.getCurrentContent();
   const blockMap = content.getBlockMap();

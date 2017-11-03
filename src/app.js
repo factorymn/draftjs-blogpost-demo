@@ -1,5 +1,36 @@
-import React from 'react';
-import { render } from 'react-dom';
-import App from './components/App';
+import { render, unmountComponentAtNode } from 'react-dom';
+import React, { Component } from 'react';
+import { AppContainer } from 'react-hot-loader';
 
-render(<App />, document.getElementById('app'));
+const mountedNode = document.getElementById('app');
+
+const renderApp = () => {
+  const App = require('./components/App/App').default;
+
+  render((
+    <AppContainer>
+      <App />
+    </AppContainer>
+  ), mountedNode);
+};
+
+if (module.hot) {
+  const reRenderApp = () => {
+    try {
+      renderApp();
+    } catch (error) {
+      console.error('render app crash ==>', error);
+    }
+  };
+
+  module.hot.accept('./components/App/App', () => {
+    setImmediate(() => {
+      // Preventing the hot reloading error from react-router
+      unmountComponentAtNode(mountedNode);
+
+      reRenderApp();
+    });
+  });
+}
+
+renderApp();
