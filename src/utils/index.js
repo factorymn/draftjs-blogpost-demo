@@ -4,7 +4,7 @@ import {
   genKey
 } from 'draft-js';
 
-import { List } from 'immutable';
+import { List, Map } from 'immutable';
 
 export const getSelectionRange = () => {
   const selection = window.getSelection();
